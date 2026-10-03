@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Quản Lý Tài Chính Cá Nhân</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --primary-color: #8a2be2;
+            --primary-light: #f0e6ff;
+            --text-color: #212529;
+            --text-muted: #6c757d;
+            --income-color: #2e7d32;
+            --income-bg: #e8f5e9;
+            --expense-color: #c62828;
+            --expense-bg: #ffebee;
+            --saving-color: #6a1b9a;
+            --border-radius: 8px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            font-size: 14px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 520px;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-bottom: 70px;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .month-selector input {
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            padding: 4px 8px;
+            font-size: 14px;
+            color: var(--text-color);
+            background: #fff;
+        }
+
+        .backup-btns {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 11px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tab-content {
+            display: none;
+            padding: var(--spacing-md);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .summary-item {
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius);
+            background-color: #f8f9fa;
+        }
+
+        .summary-item.income { background-color: var(--income-bg); }
+        .summary-item.expense { background-color: var(--expense-bg); }
+
+        .summary-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        .summary-amount {
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .income .summary-amount { color: var(--income-color); }
+        .expense .summary-amount { color: var(--expense-color); }
+
+        .saving-card {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            border: 1px solid #d1c4e9;
+        }
+
+        .saving-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .progress-bar-bg {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 6px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .budget-grid {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .budget-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 10px;
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: var(--border-radius);
+        }
+
+        .budget-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .budget-item-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            border-radius: var(--border-radius);
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .type-btn.active.income {
+            background-color: var(--income-bg);
+            color: var(--income-color);
+            border-color: var(--income-color);
+        }
+
+        .type-btn.active.expense {
+            background-color: var(--expense-bg);
+            color: var(--expense-color);
+            border-color: var(--expense-color);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            min-height: 44px;
+        }
+
+        .history-controls {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .tx-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .tx-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #fff;
+            border-radius: var(--border-radius);
+            border: 1px solid #e9ecef;
+        }
+
+        .tx-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .tx-icon {
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f3f5;
+            border-radius: 50%;
+        }
+
+        .tx-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tx-title {
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .tx-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .tx-amount {
+            font-weight: bold;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .tx-amount.income { color: var(--income-color); }
+        .tx-amount.expense { color: var(--expense-color); }
+
+        .tx-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .btn-action {
+            padding: 4px 6px;
+            font-size: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #e9ecef;
+        }
+
+        .btn-danger { background: #ffebee; color: var(--expense-color); }
+
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 520px;
+            height: 60px;
+            background: #fff;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 33%;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 70px;
+            right: calc(50% - 240px);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+            z-index: 99;
+        }
+
+        @media (max-width: 520px) {
+            .fab {
+                right: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div class="month-selector">
+            <label for="month-picker" style="font-size: 12px; font-weight: bold;">Tháng:</label>
+            <input type="month" id="month-picker">
+        </div>
+        <div class="backup-btns">
+            <button class="btn-sm" onclick="exportData()">↑ Xuất</button>
+            <button class="btn-sm" onclick="document.getElementById('import-file').click()">↓ Nhập</button>
+            <input type="file" id="import-file" style="display:none" accept=".json" onchange="importData(event)">
+        </div>
+    </header>
+
+    <!-- Tab 1: Tổng quan -->
+    <div id="tab-overview" class="tab-content active">
+        <div class="card saving-card">
+            <div class="saving-header">
+                <span style="font-weight: bold; color: var(--saving-color);">💰 Tiết kiệm (Mục tiêu 25%)</span>
+                <span id="saving-status-text" style="font-size: 11px; font-weight: bold;"></span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="saving-progress" class="progress-bar-fill"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px;">
+                <span>Đã cất: <b id="saving-actual">0đ</b></span>
+                <span>Mục tiêu: <b id="saving-target">0đ</b></span>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-item income">
+                <div class="summary-title">Thu nhập</div>
+                <div id="total-income" class="summary-amount">0đ</div>
+            </div>
+            <div class="summary-item expense">
+                <div class="summary-title">Chi tiêu</div>
+                <div id="total-expense" class="summary-amount">0đ</div>
+            </div>
+        </div>
+
+        <h3 style="font-size: 14px; margin-bottom: var(--spacing-sm);">Phân bổ ngân sách</h3>
+        <div id="budget-list" class="budget-grid"></div>
+    </div>
+
+    <!-- Tab 2: Nhập tiền -->
+    <div id="tab-add" class="tab-content">
+        <div class="card">
+            <div class="type-selector">
+                <button type="button" id="btn-type-expense" class="type-btn active expense" onclick="setType('expense')">− Chi tiêu</button>
+                <button type="button" id="btn-type-income" class="type-btn income" onclick="setType('income')">＋ Thu nhập</button>
+            </div>
+
+            <form id="tx-form" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="tx-id">
+                <div class="form-group">
+                    <label>Số tiền (đ)</label>
+                    <input type="number" id="tx-amount" class="form-control" placeholder="0" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Ngày</label>
+                    <input type="date" id="tx-date" class="form-control" required>
+                </div>
+                <div class="form-group" id="category-group">
+                    <label>Danh mục</label>
+                    <select id="tx-category" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label>Ghi chú</label>
+                    <input type="text" id="tx-note" class="form-control" placeholder="Ví dụ: Bún bò, Tiền lương...">
+                </div>
+                <button type="submit" class="btn-submit" id="btn-save">Lưu giao dịch</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tab 3: Lịch sử -->
+    <div id="tab-history" class="tab-content">
+        <div class="history-controls">
+            <input type="text" id="search-input" class="form-control" placeholder="Tìm ghi chú, danh mục..." oninput="renderHistory()">
+        </div>
+        <div id="history-list" class="tx-list"></div>
+    </div>
+
+    <button class="fab" onclick="switchTab('add')">＋</button>
+
+    <nav class="navbar">
+        <button class="nav-item active" onclick="switchTab('overview')" id="nav-overview">
+            <span class="nav-icon">🏠</span>
+            <span>Tổng quan</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('add')" id="nav-add">
+            <span class="nav-icon">＋</span>
+            <span>Nhập tiền</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('history')" id="nav-history">
+            <span class="nav-icon">☷</span>
+            <span>Lịch sử</span>
+        </button>
+    </nav>
+</div>
+
+<script>
+    const CATEGORIES = [
+        { id: 'tro_dien_nuoc', name: 'Tiền trọ + điện nước', emoji: '🏠', rate: 0.20 },
+        { id: 'an_chinh', name: 'Ăn – bữa chính', emoji: '🍚', rate: 0.18 },
+        { id: 'an_choi', name: 'Ăn / chơi / giải trí', emoji: '🎮', rate: 0.06 },
+        { id: 'y_te', name: 'Y tế – dự phòng', emoji: '🏥', rate: 0.07 },
+        { id: 'dienthoai', name: 'Điện thoại', emoji: '📱', rate: 0.03 },
+        { id: 'xang_xe', name: 'Xăng xe / BUS / Book xe ngoài', emoji: '🛵', rate: 0.06 },
+        { id: 'mua_sam', name: 'Mua sắm', emoji: '🛍️', rate: 0.05 },
+        { id: 'tiet_kiem', name: 'Tiết kiệm', emoji: '💰', rate: 0.25 },
+        { id: 'giao_duc', name: 'Giáo dục', emoji: '📚', rate: 0.05 },
+        { id: 'spa', name: 'Spa', emoji: '💆‍♀️', rate: 0.02 },
+        { id: 'khac', name: 'Khác', emoji: '📦', rate: 0.03 }
+    ];
+
+    let transactions = JSON.parse(localStorage.getItem('finance_transactions')) || [];
+    let currentType = 'expense';
+
+    function initApp() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tx-date').value = today;
+        document.getElementById('month-picker').value = today.substring(0, 7);
+        
+        populateCategorySelect();
+        
+        document.getElementById('month-picker').addEventListener('change', () => {
+            updateDashboard();
+            renderHistory();
+        });
+
+        updateDashboard();
+    }
+
+    function populateCategorySelect() {
+        const select = document.getElementById('tx-category');
+        select.innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${c.emoji} ${c.name} (${c.rate * 100}%)</option>`).join('');
+    }
+
+    function formatVND(amount) {
+        return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + 'đ';
+    }
+
+    function setType(type) {
+        currentType = type;
+        document.getElementById('btn-type-expense').className = `type-btn ${type === 'expense' ? 'active expense' : ''}`;
+        document.getElementById('btn-type-income').className = `type-btn ${type === 'income' ? 'active income' : ''}`;
+        document.getElementById('category-group').style.display = type === 'expense' ? 'block' : 'none';
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+        document.getElementById(`nav-${tabId}`).classList.add('active');
+
+        if (tabId === 'overview') updateDashboard();
+        if (tabId === 'history') renderHistory();
+    }
+
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('tx-id').value || 'tx_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+        const amount = parseFloat(document.getElementById('tx-amount').value);
+        const date = document.getElementById('tx-date').value;
+        const categoryId = currentType === 'expense' ? document.getElementById('tx-category').value : null;
+        const note = document.getElementById('tx-note').value.trim();
+
+        const newTx = { id, type: currentType, amount, date, categoryId, note };
+
+        const index = transactions.findIndex(t => t.id === id);
+        if (index > -1) {
+            transactions[index] = newTx;
+        } else {
+            transactions.push(newTx);
+        }
+
+        localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+
+        // Reset Form
+        document.getElementById('tx-form').reset();
+        document.getElementById('tx-id').value = '';
+        document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+        setType('expense');
+
+        updateDashboard();
+        switchTab('overview');
+    }
+
+    function getSelectedMonthTx() {
+        const selectedMonth = document.getElementById('month-picker').value;
+        return transactions.filter(t => t.date.startsWith(selectedMonth));
+    }
+
+    function updateDashboard() {
+        const monthTx = getSelectedMonthTx();
+        
+        const totalIncome = monthTx.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+        const totalExpense = monthTx.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+        document.getElementById('total-income').innerText = formatVND(totalIncome);
+        document.getElementById('total-expense').innerText = formatVND(totalExpense);
+
+        // Saving logic
+        const savingTarget = totalIncome * 0.25;
+        const savingActual = monthTx.filter(t => t.type === 'expense' && t.categoryId === 'tiet_kiem').reduce((sum, t) => sum + t.amount, 0);
+        
+        document.getElementById('saving-target').innerText = formatVND(savingTarget);
+        document.getElementById('saving-actual').innerText = formatVND(savingActual);
+        
+        const savingPct = savingTarget > 0 ? Math.min(100, (savingActual / savingTarget) * 100) : 0;
+        document.getElementById('saving-progress').style.width = `${savingPct}%`;
+
+        const diff = savingTarget - savingActual;
+        document.getElementById('saving-status-text').innerText = diff > 0 ? `Còn thiếu: ${formatVND(diff)}` : 'Đã đạt mục tiêu! 🎉';
+
+        // Budget allocation
+        const budgetListEl = document.getElementById('budget-list');
+        budgetListEl.innerHTML = CATEGORIES.map(cat => {
+            const expected = totalIncome * cat.rate;
+            const spent = monthTx.filter(t => t.type === 'expense' && t.categoryId === cat.id).reduce((sum, t) => sum + t.amount, 0);
+            const pct = expected > 0 ? Math.min(100, (spent / expected) * 100) : 0;
+            const isOver = spent > expected && expected > 0;
+
+            return `
+                <div class="budget-item">
+                    <div class="budget-item-header">
+                        <span>${cat.emoji} ${cat.name} (${cat.rate * 100}%)</span>
+                        <span style="color: ${isOver ? 'var(--expense-color)' : 'inherit'}">${formatVND(spent)}</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${pct}%; background-color: ${isOver ? 'var(--expense-color)' : 'var(--primary-color)'}"></div>
+                    </div>
+                    <div class="budget-item-details">
+                        <span>Đã chi: ${formatVND(spent)}</span>
+                        <span>Dự kiến: ${formatVND(expected)}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderHistory() {
+        const monthTx = getSelectedMonthTx();
+        const search = document.getElementById('search-input').value.toLowerCase();
+
+        const filtered = monthTx.filter(t => {
+            const cat = CATEGORIES.find(c => c.id === t.categoryId);
+            const catName = cat ? cat.name.toLowerCase() : '';
+            const note = (t.note || '').toLowerCase();
+            return note.includes(search) || catName.includes(search);
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const historyEl = document.getElementById('history-list');
+        if (filtered.length === 0) {
+            historyEl.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">Không có giao dịch nào</div>`;
+            return;
+        }
+
+        historyEl.innerHTML = filtered.map(t => {
+            const cat = CATEGORIES.find(c => c.id === t.categoryId);
+            const emoji = t.type === 'income' ? '💵' : (cat ? cat.emoji : '📦');
+            const title = t.note || (t.type === 'income' ? 'Thu nhập' : cat.name);
+            const sub = `${t.date} ${cat ? '• ' + cat.name : ''}`;
+
+            return `
+                <div class="tx-item">
+                    <div class="tx-info">
+                        <div class="tx-icon">${emoji}</div>
+                        <div class="tx-details">
+                            <span class="tx-title">${title}</span>
+                            <span class="tx-sub">${sub}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <span class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${formatVND(t.amount)}</span>
+                        <div class="tx-actions">
+                            <button class="btn-action" onclick="editTx('${t.id}')">Sửa</button>
+                            <button class="btn-action btn-danger" onclick="deleteTx('${t.id}')">Xóa</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function editTx(id) {
+        const tx = transactions.find(t => t.id === id);
+        if (!tx) return;
+
+        document.getElementById('tx-id').value = tx.id;
+        document.getElementById('tx-amount').value = tx.amount;
+        document.getElementById('tx-date').value = tx.date;
+        document.getElementById('tx-note').value = tx.note || '';
+
+        setType(tx.type);
+        if (tx.type === 'expense') {
+            document.getElementById('tx-category').value = tx.categoryId;
+        }
+
+        switchTab('add');
+    }
+
+    function deleteTx(id) {
+        if (confirm('Bạn có chắc muốn xóa giao dịch này?')) {
+            transactions = transactions.filter(t => t.id !== id);
+            localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+            updateDashboard();
+            renderHistory();
+        }
+    }
+
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transactions, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `quan-ly-tai-chinh-backup-${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importData(event) {
+        const fileReader = new FileReader();
+        fileReader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    transactions = imported;
+                    localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+                    updateDashboard();
+                    renderHistory();
+                    alert('Nhập dữ liệu thành công!');
+                } else {
+                    alert('File không hợp lệ!');
+                }
+            } catch (err) {
+                alert('Lỗi khi đọc file JSON!');
+            }
+        };
+        fileReader.readAsText(event.target.files[0]);
+    }
+
+    window.onload = initApp;
+</script>
+</body>
+</html>
